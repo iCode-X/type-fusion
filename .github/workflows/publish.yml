@@ -1,0 +1,59 @@
+name: Publish Packages
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build packages
+        run: yarn build
+
+      - name: Publish to npm
+        run: yarn workspaces foreach run publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create Deno Module Entry
+        run: |
+          echo "Creating Deno entry points..."
+          # 在每个包中创建 mod.ts
+          for pkg in packages/*; do
+            echo "export * from '../dist/esm/index.js';" > ${pkg}/src/mod.ts
+          done
+
+      - name: Commit mod.ts files
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add packages/*/src/mod.ts
+          git commit -m "chore: add mod.ts for Deno support" || echo "No changes to commit"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload built files to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            packages/algorithms/dist/**
+            packages/common/dist/**
+            packages/type-transform/dist/**
+            packages/*/src/mod.ts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,31 @@
+{
+  "name": "@icode-x/algorithms",
+  "version": "1.0.0",
+  "description": "A collection of algorithms for TypeFusion project.",
+  "license": "MIT",
+  "author": "Felix Lau",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "prepublishOnly": "yarn build",
+    "test": "jest",
+    "test:coverage": "jest --coverage"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
